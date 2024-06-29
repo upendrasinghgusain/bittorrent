@@ -22,6 +22,10 @@ namespace bittorrent
             {
                 return DecodeList(encodedValue);
             }
+            else if (encodedValue[0] == 'd' && encodedValue[encodedValue.Length - 1] == 'e')
+            {
+                return DecodeDictionary(encodedValue);
+            }
 
             throw new InvalidOperationException("Unhandled encoded value: " + encodedValue);
         }
@@ -100,6 +104,57 @@ namespace bittorrent
             }
 
             return result.Substring(0, result.Length - 1) + "]";
+        }
+
+        private string DecodeDictionary(string encodedValue)
+        {
+            /*
+             * Example: d3:foo3:bar5:helloi52ee => {"foo":"bar","hello":52}
+             */
+
+            var dict = new Dictionary<string, string>();
+            for (int i = 1; i <= encodedValue.Length - 2; i++)
+            {
+                var key = DecodeString(encodedValue.Substring(i));
+                i = i + key.Length + (key.Length.ToString().Length) + 1;
+
+                string value = "";
+                if (char.IsDigit(encodedValue[i]))
+                {
+                    value = DecodeString(encodedValue.Substring(i));
+                    i = i + value.Length + (value.Length.ToString().Length);
+                }
+                else if (encodedValue[i] == 'i')
+                {
+                    value = DecodeNumber(encodedValue.Substring(i));
+                    i = i + value.Length + 1;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid encoded value in Dictionary: " + encodedValue);
+                }
+
+                dict.Add(key, value);
+            }
+
+            string result = "{";
+            foreach (var item in dict.OrderBy(x => x.Key))
+            {
+                result = result + "\"" + item.Key;
+                int val = 0;
+                if(int.TryParse(item.Value, out val))
+                {
+                    result = result + "\":" + val + ",";
+                }
+                else
+                {
+                    result = result + "\":\"" + item.Value + "\",";
+                }
+                
+            };
+
+            return result.Substring(0, result.Length - 1) + "}";
+
         }
     }
 }

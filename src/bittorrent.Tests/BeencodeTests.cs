@@ -10,6 +10,8 @@ namespace bittorrent.Tests
         [InlineData("li123e7:upendrae", "[123,\"upendra\"]")]
         [InlineData("li1ei23ei456ee", "[1,23,456]")]
         [InlineData("l5:ethan26:HelloMyNameIsUpendraGusain1:Ie", "[\"ethan\",\"HelloMyNameIsUpendraGusain\",\"I\"]")]
+        [InlineData("d3:foo3:bar5:helloi52ee", "{\"foo\":\"bar\",\"hello\":52}")]
+        [InlineData("d3:bar4:spam3:fooi42ee", "{\"bar\":\"spam\",\"foo\":42}")]
         public void EncodeTest(string encodedString, string expectedResult)
         {
             var actualResult = new Beencode().Decode(encodedString);

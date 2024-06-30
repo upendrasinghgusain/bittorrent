@@ -129,6 +129,11 @@ namespace bittorrent
                     value = DecodeNumber(encodedValue.Substring(i));
                     i = i + value.Length + 1;
                 }
+                else if (encodedValue[0] == 'd' && encodedValue[encodedValue.Length - 1] == 'e')
+                {
+                    value = DecodeDictionary(encodedValue.Substring(i, encodedValue.Length - i - 2));
+                    i = i + value.Length + 1;
+                }
                 else
                 {
                     throw new InvalidOperationException("Invalid encoded value in Dictionary: " + encodedValue);
@@ -142,7 +147,7 @@ namespace bittorrent
             {
                 result = result + "\"" + item.Key;
                 int val = 0;
-                if(int.TryParse(item.Value, out val))
+                if (int.TryParse(item.Value, out val))
                 {
                     result = result + "\":" + val + ",";
                 }
@@ -150,7 +155,7 @@ namespace bittorrent
                 {
                     result = result + "\":\"" + item.Value + "\",";
                 }
-                
+
             };
 
             return result.Substring(0, result.Length - 1) + "}";

@@ -154,7 +154,6 @@ namespace bittorrent
             };
 
             return result.Substring(0, result.Length - 1) + "}";
-
         }
     }
 }

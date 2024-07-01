@@ -82,20 +82,34 @@ namespace bittorrent.Tests
             Assert.Equal(expectedResult, actualResult);
         }
 
+        [Theory]
+        [InlineData("d4:key11:x2:zkli1e2:wee4:akeyi89ee", "{\"akey\":89,\"key1\":\"x\",\"zk\":[1,\"we\"]}")]
+        public void Decode_Dictionary_Containing_List(string encodedString, string expectedResult)
+        {
+            var actualResult = new Beencode().Decode(encodedString);
+
+            Assert.Equal(expectedResult, actualResult);
+        }
+
         [Fact]
         public void Test()
         {
-            //var x = new Dictionary<string, List<string>>();
+            var x = new Dictionary<string, object>();
+            x.Add("key1", "x");
+            x.Add("zk", new List<object>() { 1, "we" });
+            x.Add("akey", 89);
+
+            var x2 = JsonSerializer.Serialize(x);
 
 
 
-            var y = new List<object>();
+            //var y = new List<object>();
 
-            y.Add("monday");
-            y.Add(new Dictionary<string, object> { { "foo", "bar" }, { "hello", 52 } });
-            y.Add("tuesday");
+            //y.Add("monday");
+            //y.Add(new Dictionary<string, object> { { "foo", "bar" }, { "hello", 52 } });
+            //y.Add("tuesday");
 
-            var y2 = JsonSerializer.Serialize(y);
+            //var y2 = JsonSerializer.Serialize(y);
         }
     }
 }

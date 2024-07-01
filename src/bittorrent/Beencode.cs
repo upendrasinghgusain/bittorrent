@@ -53,7 +53,7 @@ namespace bittorrent
                 {
                     if (encodedValue[i] is not 'e' and not ':')
                     {
-                        throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
+                        throw new InvalidOperationException($"Invalid encoded character '{encodedValue[i]}' in {encodedValue}");
                     }
 
                     break;
@@ -125,11 +125,11 @@ namespace bittorrent
             {
                 (value, i) = DecodeNumber(encodedValue.Substring(i), i);
             }
-            else if (encodedValue[0] == 'l')
+            else if (encodedValue[i] == 'l')
             {
                 (value, i) = DecodeList(encodedValue, i);
             }
-            else if (encodedValue[0] == 'd')
+            else if (encodedValue[i] == 'd')
             {
                 (value, i) = DecodeDictionary(encodedValue, i);
             }

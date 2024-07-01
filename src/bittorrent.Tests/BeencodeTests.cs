@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace bittorrent.Tests
 {
     public class BeencodeTests
@@ -71,11 +73,29 @@ namespace bittorrent.Tests
         //todo: Dictionary with list in it
         //todo: List with Dictionary in it
 
+        [Theory]
+        [InlineData("l6:mondayd3:foo3:bar5:helloi52ee7:tuesdaye", "[\"monday\",{\"foo\":\"bar\",\"hello\":52},\"tuesday\"]")]
+        public void Decode_List_Containing_Dictionary(string encodedString, string expectedResult)
+        {
+            var actualResult = new Beencode().Decode(encodedString);
+
+            Assert.Equal(expectedResult, actualResult);
+        }
+
         [Fact]
         public void Test()
         {
-            var x = new Dictionary<string, List<string>>();
-            var y = new List<Dictionary<string, string>>();
+            //var x = new Dictionary<string, List<string>>();
+
+
+
+            var y = new List<object>();
+
+            y.Add("monday");
+            y.Add(new Dictionary<string, object> { { "foo", "bar" }, { "hello", 52 } });
+            y.Add("tuesday");
+
+            var y2 = JsonSerializer.Serialize(y);
         }
     }
 }

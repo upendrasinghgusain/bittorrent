@@ -90,6 +90,9 @@ namespace bittorrent
 
             for (; i <= encodedValue.Length - 2; i++)
             {
+                if (encodedValue[i] == 'e')// end of list
+                    break;
+
                 if (char.IsDigit(encodedValue[i]))
                 {
                     (value, i) = DecodeString(encodedValue.Substring(i), i);

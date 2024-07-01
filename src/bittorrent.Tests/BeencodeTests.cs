@@ -38,6 +38,15 @@ namespace bittorrent.Tests
         }
 
         [Theory]
+        [InlineData("l6:mondayl4:worki42ee7:tuesdayl4:homeee", "[\"monday\",[\"work\",42],\"tuesday\",[\"home\"]]")]
+        public void Decode_List_Recursion(string encodedString, string expectedResult)
+        {
+            var actualResult = new Beencode().Decode(encodedString);
+
+            Assert.Equal(expectedResult, actualResult);
+        }
+
+        [Theory]
         [InlineData("d3:foo3:bar5:helloi52ee", "{\"foo\":\"bar\",\"hello\":52}")]
         [InlineData("d5:helloi52e3:foo3:bare", "{\"foo\":\"bar\",\"hello\":52}")]
         [InlineData("d3:bar4:spam3:fooi42ee", "{\"bar\":\"spam\",\"foo\":42}")]

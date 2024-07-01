@@ -17,27 +17,26 @@ namespace bittorrent
             }
             else if (encodedValue[0] == 'i' && encodedValue[encodedValue.Length - 1] == 'e')
             {
-                return DecodeNumber(encodedValue).decodedValue;
+                return JsonSerializer.Serialize(DecodeNumber(encodedValue).decodedValue);
             }
             else if (encodedValue[0] == 'l' && encodedValue[encodedValue.Length - 1] == 'e')
             {
-                return DecodeList(encodedValue);
+                return JsonSerializer.Serialize(DecodeList(encodedValue).decodedValue);
             }
             else if (encodedValue[0] == 'd' && encodedValue[encodedValue.Length - 1] == 'e')
             {
-                // todo: configure serializer to not enclose int in quotes
                 return JsonSerializer.Serialize(DecodeDictionary(encodedValue).dictionary);
             }
 
             throw new InvalidOperationException("Unhandled encoded value: " + encodedValue);
         }
 
-        private (string decodedValue, int position) DecodeNumber(string encodedValue, int currentPosition = 0)
+        private (int decodedValue, int position) DecodeNumber(string encodedValue, int currentPosition = 0)
         {
             // Example: i42e => 42
 
             var strNumber = GetNumber(encodedValue.Substring(1));
-            return (strNumber, currentPosition + strNumber.Length + 1);
+            return (int.Parse(strNumber), currentPosition + strNumber.Length + 1);
         }
 
         private (string decodedValue, int position) DecodeString(string encodedValue, int currentPosition = 0)
@@ -54,13 +53,20 @@ namespace bittorrent
 
         private string GetNumber(string encodedValue)
         {
+            int i = 0;
             string strNumber = "";
 
-            for (int i = 0; i < encodedValue.Length; i++)
+            if (encodedValue[0] == '-')
+            {
+                strNumber = "-";
+                i++;
+            }
+
+            for (; i < encodedValue.Length; i++)
             {
                 if (!char.IsDigit(encodedValue[i]))
                 {
-                    if (encodedValue[i] != 'e' || encodedValue[i] != ':')
+                    if (encodedValue[i] is not 'e' and not ':')
                     {
                         throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
                     }
@@ -74,42 +80,37 @@ namespace bittorrent
             return strNumber;
         }
 
-        private string DecodeList(string encodedValue)
+        private (List<object> decodedValue, int position) DecodeList(string encodedValue, int currentPosition = 0)
         {
             // l5:helloi52ee => ["Hello",52]
 
-            /*
-             * loop
-             * read first character
-             * route to respective decoder
-             */
+            int i = currentPosition + 1;
+            var list = new List<object>();
+            object value = null;
 
-            string result = "[";
-
-            for (int i = 1; i <= encodedValue.Length - 2; i++)
+            for (; i <= encodedValue.Length - 2; i++)
             {
-                char c = encodedValue[i];
-                if (char.IsDigit(c))
+                if (char.IsDigit(encodedValue[i]))
                 {
-                    var (decodedString, position) = DecodeString(encodedValue.Substring(i));
-                    result = result + "\"" + decodedString + "\",";
-                    //i = i + decodedString.Length + (decodedString.Length.ToString().Length);
-                    i = position;
+                    (value, i) = DecodeString(encodedValue.Substring(i), i);
                 }
-                else if (c == 'i')
+                else if (encodedValue[i] == 'i')
                 {
-                    var (decodedNumber, position) = DecodeNumber(encodedValue.Substring(i));
-                    result = result + decodedNumber + ",";
-                    //i = i + decodedNumber.Length + 1;
-                    i = position;
+                    (value, i) = DecodeNumber(encodedValue.Substring(i), i);
+                }
+                else if (encodedValue[0] == 'l')
+                {
+                    (value, i) = DecodeList(encodedValue, i);
                 }
                 else
                 {
-                    throw new InvalidOperationException("Invalid encoded value in List: " + encodedValue);
+                    throw new InvalidOperationException("Invalid encoded value in Dictionary: " + encodedValue);
                 }
+
+                list.Add(value);
             }
 
-            return result.Substring(0, result.Length - 1) + "]";
+            return (list, i);
         }
 
         //todo:  return result and current position i the encoded string

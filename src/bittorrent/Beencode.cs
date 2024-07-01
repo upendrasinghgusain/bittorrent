@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace bittorrent
 {
@@ -11,24 +6,14 @@ namespace bittorrent
     {
         public string Decode(string encodedValue)
         {
-            if (char.IsDigit(encodedValue[0]))
+            var value = DecodeInternal(encodedValue).value;
+
+            if (value.GetType() == typeof(string))
             {
-                return DecodeString(encodedValue).decodedValue;
-            }
-            else if (encodedValue[0] == 'i' && encodedValue[encodedValue.Length - 1] == 'e')
-            {
-                return JsonSerializer.Serialize(DecodeNumber(encodedValue).decodedValue);
-            }
-            else if (encodedValue[0] == 'l' && encodedValue[encodedValue.Length - 1] == 'e')
-            {
-                return JsonSerializer.Serialize(DecodeList(encodedValue).decodedValue);
-            }
-            else if (encodedValue[0] == 'd' && encodedValue[encodedValue.Length - 1] == 'e')
-            {
-                return JsonSerializer.Serialize(DecodeDictionary(encodedValue).dictionary);
+                return value.ToString();
             }
 
-            throw new InvalidOperationException("Unhandled encoded value: " + encodedValue);
+            return JsonSerializer.Serialize(value);
         }
 
         private (int decodedValue, int position) DecodeNumber(string encodedValue, int currentPosition = 0)
@@ -93,22 +78,7 @@ namespace bittorrent
                 if (encodedValue[i] == 'e')// end of list
                     break;
 
-                if (char.IsDigit(encodedValue[i]))
-                {
-                    (value, i) = DecodeString(encodedValue.Substring(i), i);
-                }
-                else if (encodedValue[i] == 'i')
-                {
-                    (value, i) = DecodeNumber(encodedValue.Substring(i), i);
-                }
-                else if (encodedValue[0] == 'l')
-                {
-                    (value, i) = DecodeList(encodedValue, i);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Invalid encoded value in Dictionary: " + encodedValue);
-                }
+                (value, i) = DecodeInternal(encodedValue, i);
 
                 list.Add(value);
             }
@@ -116,7 +86,6 @@ namespace bittorrent
             return (list, i);
         }
 
-        //todo:  return result and current position i the encoded string
         //todo: make a class for bittorrent file contents
         private (Dictionary<string, object> dictionary, int position) DecodeDictionary(string encodedValue, int currentPosition = 0)
         {
@@ -125,38 +94,51 @@ namespace bittorrent
              */
             int i = currentPosition + 1;
             var dict = new Dictionary<string, object>();
+            string key = "";
+            object value = null;
 
             for (; i <= encodedValue.Length - 2; i++)
             {
                 if (encodedValue[i] == 'e')// end of dictionary
                     break;
 
-                var (key, position) = DecodeString(encodedValue.Substring(i), i);
-                i = position + 1;
+                (key, i) = DecodeString(encodedValue.Substring(i), i);
+                i++;
 
-                object value = null;
-                if (char.IsDigit(encodedValue[i]))
-                {
-                    (value, position) = DecodeString(encodedValue.Substring(i), i);
-                }
-                else if (encodedValue[i] == 'i')
-                {
-                    (value, position) = DecodeNumber(encodedValue.Substring(i), i);
-                }
-                else if (encodedValue[0] == 'd')
-                {
-                    (value, position) = DecodeDictionary(encodedValue, i);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Invalid encoded value in Dictionary: " + encodedValue);
-                }
+                (value, i) = DecodeInternal(encodedValue, i);
 
                 dict.Add(key, value);
-                i = position;
             }
 
             return (dict.OrderBy(x => x.Key).ToDictionary(), i);
+        }
+
+        private (object value, int position) DecodeInternal(string encodedValue, int i = 0)
+        {
+            object value;
+
+            if (char.IsDigit(encodedValue[i]))
+            {
+                (value, i) = DecodeString(encodedValue.Substring(i), i);
+            }
+            else if (encodedValue[i] == 'i')
+            {
+                (value, i) = DecodeNumber(encodedValue.Substring(i), i);
+            }
+            else if (encodedValue[0] == 'l')
+            {
+                (value, i) = DecodeList(encodedValue, i);
+            }
+            else if (encodedValue[0] == 'd')
+            {
+                (value, i) = DecodeDictionary(encodedValue, i);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid encoded character '{encodedValue[i]}' in {encodedValue}");
+            }
+
+            return (value, i);
         }
     }
 }

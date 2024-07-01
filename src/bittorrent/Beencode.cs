@@ -6,6 +6,9 @@ namespace bittorrent
     {
         public string Decode(string encodedValue)
         {
+            if(string.IsNullOrWhiteSpace(encodedValue))
+                throw new ArgumentNullException(nameof(encodedValue));
+
             var value = DecodeInternal(encodedValue).value;
 
             if (value.GetType() == typeof(string))

@@ -70,9 +70,6 @@ namespace bittorrent.Tests
             Assert.Equal(expectedResult, actualResult);
         }
 
-        //todo: Dictionary with list in it
-        //todo: List with Dictionary in it
-
         [Theory]
         [InlineData("l6:mondayd3:foo3:bar5:helloi52ee7:tuesdaye", "[\"monday\",{\"foo\":\"bar\",\"hello\":52},\"tuesday\"]")]
         public void Decode_List_Containing_Dictionary(string encodedString, string expectedResult)

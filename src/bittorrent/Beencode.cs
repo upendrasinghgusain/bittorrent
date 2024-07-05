@@ -89,7 +89,7 @@ namespace bittorrent
             return (list, i);
         }
 
-        //todo: make a class for bittorrent file contents
+        //todo: make a class for bittorrent file contents, ok
         private (Dictionary<string, object> dictionary, int position) DecodeDictionary(string encodedValue, int currentPosition = 0)
         {
             /*
